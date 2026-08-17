@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Flow Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --bg:#14171a;
+  --bg-raised:#181c1f;
+  --panel:#1c2024;
+  --panel-2:#20252a;
+  --border:#2b3136;
+  --border-soft:#242a2f;
+  --text:#ece9e2;
+  --text-dim:#c8c5bd;
+  --text-muted:#8b9299;
+  --text-faint:#5c636a;
+  --accent:#8fb08a;
+  --accent-dim:rgba(143,176,138,0.14);
+  --accent-strong:#a9c9a4;
+  --gold:#c9a35a;
+  --red:#c1666b;
+  --red-dim:rgba(193,102,107,0.14);
+  --blue:#7a9bc4;
+  --radius:8px;
+  --radius-sm:5px;
+  --serif:'Fraunces', Georgia, serif;
+  --sans:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, monospace;
+}
+[data-accent="teal"]{ --accent:#6fa8a0; --accent-dim:rgba(111,168,160,0.14); --accent-strong:#8fc3ba; }
+[data-accent="gold"]{ --accent:#c9a35a; --accent-dim:rgba(201,163,90,0.14); --accent-strong:#ddbd7f; }
+[data-accent="blue"]{ --accent:#7a9bc4; --accent-dim:rgba(122,155,196,0.14); --accent-strong:#9dbadd; }
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:14px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{ background:var(--accent-dim); color:var(--text); }
+::-webkit-scrollbar{ width:10px; height:10px; }
+::-webkit-scrollbar-track{ background:transparent; }
+::-webkit-scrollbar-thumb{ background:var(--border); border-radius:10px; }
+a{ color:inherit; text-decoration:none; }
+button{ font-family:inherit; cursor:pointer; }
+:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:4px; }
+input, textarea, select{ font-family:inherit; font-size:13px; color:var(--text); background:var(--bg-raised); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 10px; }
+input:focus, textarea:focus, select:focus{ border-color:var(--accent); outline:none; }
+.mono{ font-family:var(--mono); }
+.serif{ font-family:var(--serif); }
+
+/* ============ LAYOUT ============ */
+#root{ display:flex; min-height:100vh; }
+.sidebar{
+  width:224px; flex:none; background:var(--bg-raised); border-right:1px solid var(--border-soft);
+  display:flex; flex-direction:column; position:sticky; top:0; height:100vh; padding:20px 0;
+}
+.brand{ padding:0 20px 22px 20px; border-bottom:1px solid var(--border-soft); margin-bottom:14px; }
+.brand-mark{ font-family:var(--serif); font-size:19px; font-weight:600; letter-spacing:0.2px; color:var(--text); }
+.brand-sub{ font-family:var(--mono); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-faint); margin-top:4px; }
+.nav{ display:flex; flex-direction:column; gap:1px; padding:0 10px; flex:1; }
+.nav-item{
+  display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:var(--radius-sm);
+  color:var(--text-muted); font-size:13px; font-weight:500; transition:background .12s, color .12s;
+}
+.nav-item:hover{ background:var(--panel); color:var(--text-dim); }
+.nav-item.active{ background:var(--accent-dim); color:var(--accent-strong); }
+.nav-item .ico{ width:15px; text-align:center; opacity:.85; font-size:13px; }
+.nav-foot{ padding:14px 20px 0 20px; border-top:1px solid var(--border-soft); margin-top:10px; }
+.nav-foot .kbd-hint{ font-family:var(--mono); font-size:10.5px; color:var(--text-faint); }
+
+.mobile-topbar{ display:none; }
+.main{ flex:1; min-width:0; }
+.page{ max-width:1180px; margin:0 auto; padding:34px 40px 80px 40px; }
+.page-wide{ max-width:1400px; }
+
+h1.page-title{ font-family:var(--serif); font-size:28px; font-weight:600; color:var(--text); margin-bottom:4px; }
+.page-sub{ color:var(--text-muted); font-size:13.5px; margin-bottom:28px; }
+.eyebrow{ font-family:var(--mono); font-size:10.5px; letter-spacing:1.6px; text-transform:uppercase; color:var(--text-faint); margin-bottom:8px; }
+
+.panel{ background:var(--panel); border:1px solid var(--border-soft); border-radius:var(--radius); }
+.panel-pad{ padding:20px; }
+.divider{ height:1px; background:var(--border-soft); border:none; margin:18px 0; }
+
+.grid{ display:grid; gap:16px; }
+.grid-2{ grid-template-columns:1fr 1fr; }
+.grid-3{ grid-template-columns:repeat(3,1fr); }
+.grid-4{ grid-template-columns:repeat(4,1fr); }
+
+.btn{
+  display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border-radius:var(--radius-sm);
+  border:1px solid var(--border); background:var(--panel-2); color:var(--text-dim); font-size:13px; font-weight:500;
+  transition:border-color .12s, color .12s, background .12s;
+}
+.btn:hover{ border-color:var(--text-faint); color:var(--text); }
+.btn-accent{ background:var(--accent-dim); border-color:transparent; color:var(--accent-strong); }
+.btn-accent:hover{ background:var(--accent); color:#12140f; }
+.btn-ghost{ background:transparent; border-color:transparent; color:var(--text-muted); }
+.btn-ghost:hover{ background:var(--panel-2); color:var(--text); }
+.btn-sm{ padding:5px 10px; font-size:12px; }
+.btn-danger{ color:var(--red); }
+.btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+.tag{ font-family:var(--mono); font-size:10.5px; padding:2px 7px; border-radius:4px; letter-spacing:.3px; border:1px solid var(--border); color:var(--text-muted); }
+.tag-important{ color:var(--red); border-color:var(--red-dim); background:var(--red-dim); }
+.tag-question{ color:var(--blue); border-color:rgba(122,155,196,.2); background:rgba(122,155,196,.08); }
+.tag-definition{ color:var(--gold); border-color:rgba(201,163,90,.2); background:rgba(201,163,90,.08); }
+.tag-review, .tag-strategy, .tag-example, .tag-confusing{ color:var(--accent-strong); border-color:var(--accent-dim); background:var(--accent-dim); }
+
+.badge-source{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.8px; padding:2px 6px; border-radius:4px; }
+.badge-instructor{ background:rgba(122,155,196,.1); color:var(--blue); }
+.badge-ai{ background:var(--accent-dim); color:var(--accent-strong); }
+.badge-me{ background:rgba(201,163,90,.1); color:var(--gold); }
+
+.empty{ padding:40px 20px; text-align:center; color:var(--text-muted); }
+.empty p{ max-width:340px; margin:8px auto 16px auto; font-size:13px; color:var(--text-faint); }
+.empty .empty-title{ font-family:var(--serif); font-size:17px; color:var(--text-dim); }
+
+/* progress bar */
+.pbar{ height:5px; background:var(--panel-2); border-radius:3px; overflow:hidden; position:relative; }
+.pbar > div{ height:100%; background:var(--accent); border-radius:3px; transition:width .3s; }
+.pbar.thin{ height:3px; }
+
+/* stat row */
+.stat{ padding:16px 18px; border:1px solid var(--border-soft); border-radius:var(--radius); background:var(--panel); }
+.stat .stat-val{ font-family:var(--serif); font-size:26px; color:var(--text); font-weight:600; }
+.stat .stat-label{ font-size:11.5px; color:var(--text-muted); margin-top:2px; }
+
+/* dashboard cards */
+.continue-card{ display:flex; align-items:center; gap:18px; padding:20px; }
+.continue-thumb{ width:120px; height:68px; border-radius:6px; background:var(--panel-2) center/cover no-repeat; flex:none; border:1px solid var(--border-soft); }
+.continue-meta .cm-title{ font-family:var(--serif); font-size:16px; color:var(--text); margin-bottom:4px; }
+.continue-meta .cm-time{ font-family:var(--mono); font-size:12px; color:var(--text-muted); }
+
+.review-row{ display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--border-soft); }
+.review-row:last-child{ border-bottom:none; }
+.review-row .rn{ font-size:13.5px; color:var(--text-dim); }
+.review-row .rd{ font-family:var(--mono); font-size:11px; color:var(--text-faint); }
+.review-row .rd.due{ color:var(--red); }
+
+/* course list */
+.course-video{ border:1px solid var(--border-soft); border-radius:var(--radius); margin-bottom:10px; overflow:hidden; }
+.cv-head{ display:flex; align-items:center; gap:14px; padding:14px 16px; cursor:pointer; }
+.cv-num{ font-family:var(--mono); font-size:12px; color:var(--text-faint); width:22px; }
+.cv-title{ flex:1; font-size:14px; color:var(--text-dim); font-weight:500; }
+.cv-title .cv-sub{ display:block; font-size:11.5px; color:var(--text-faint); font-weight:400; margin-top:2px; }
+.cv-stats{ display:flex; gap:16px; align-items:center; }
+.cv-stat{ font-family:var(--mono); font-size:11px; color:var(--text-muted); text-align:right; }
+.cv-check{ width:16px; height:16px; border-radius:50%; border:1.5px solid var(--border); flex:none; }
+.cv-check.done{ background:var(--accent); border-color:var(--accent); }
+.cv-body{ padding:0 16px 16px 52px; display:none; }
+.cv-body.open{ display:block; }
+.cv-chapter{ display:flex; justify-content:space-between; padding:6px 0; font-size:12.5px; color:var(--text-muted); border-bottom:1px solid var(--border-soft); }
+.cv-chapter:last-child{ border-bottom:none; }
+
+/* video page */
+.video-layout{ display:grid; grid-template-columns:1.6fr 1fr; gap:22px; align-items:start; }
+.video-wrap{ background:#000; border-radius:var(--radius); overflow:hidden; aspect-ratio:16/9; border:1px solid var(--border-soft); }
+.video-wrap iframe{ width:100%; height:100%; border:0; }
+.tick-rail{ position:relative; height:22px; margin-top:10px; }
+.tick-rail .rail-line{ position:absolute; top:10px; left:0; right:0; height:2px; background:var(--border); }
+.tick-rail .tick{ position:absolute; top:6px; width:2px; height:10px; background:var(--accent); cursor:pointer; }
+.tick-rail .tick.note{ background:var(--gold); }
+.video-controls{ display:flex; align-items:center; justify-content:space-between; margin-top:12px; gap:10px; flex-wrap:wrap; }
+.video-controls .vc-left{ display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:12px; color:var(--text-muted); }
+.video-controls .vc-right{ display:flex; gap:8px; }
+
+.panel-tabs{ display:flex; border-bottom:1px solid var(--border-soft); }
+.panel-tab{ padding:11px 14px; font-size:12.5px; font-weight:500; color:var(--text-faint); border-bottom:2px solid transparent; }
+.panel-tab.active{ color:var(--text); border-color:var(--accent); }
+.panel-tab:hover{ color:var(--text-dim); }
+.tab-content{ padding:16px; max-height:640px; overflow-y:auto; }
+
+.note-card{ border:1px solid var(--border-soft); border-radius:var(--radius-sm); padding:12px; margin-bottom:10px; background:var(--bg-raised); }
+.note-card .nc-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.note-card .nc-time{ font-family:var(--mono); font-size:12px; color:var(--accent-strong); cursor:pointer; }
+.note-card .nc-tags{ display:flex; gap:5px; flex-wrap:wrap; margin-top:6px; }
+.note-card .nc-actions{ display:flex; gap:4px; }
+.note-card .nc-content{ font-size:13px; color:var(--text-dim); white-space:pre-wrap; }
+.note-card .nc-ai{ margin-top:8px; padding-top:8px; border-top:1px dashed var(--border-soft); }
+
+.transcript-line{ display:flex; gap:10px; padding:5px 0; font-size:13px; color:var(--text-muted); cursor:pointer; border-radius:4px; }
+.transcript-line:hover{ background:var(--panel-2); }
+.transcript-line.active{ color:var(--text); background:var(--accent-dim); }
+.transcript-line .tl-time{ font-family:var(--mono); font-size:11.5px; color:var(--text-faint); flex:none; width:44px; }
+
+.chat-msg{ margin-bottom:14px; }
+.chat-msg .cm-role{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.8px; color:var(--text-faint); margin-bottom:4px; }
+.chat-msg .cm-body{ font-size:13.5px; color:var(--text-dim); }
+.chat-msg.user .cm-body{ color:var(--text); }
+.chat-jump{ display:inline-block; margin-top:6px; font-family:var(--mono); font-size:11.5px; color:var(--accent-strong); border:1px solid var(--accent-dim); padding:3px 8px; border-radius:5px; }
+.chat-input-row{ display:flex; gap:8px; padding:12px; border-top:1px solid var(--border-soft); }
+.chat-input-row input{ flex:1; }
+
+/* concepts */
+.concept-card{ padding:16px; border:1px solid var(--border-soft); border-radius:var(--radius); background:var(--panel); }
+.concept-card .cc-name{ font-family:var(--serif); font-size:16px; color:var(--text); }
+.mastery-bar{ height:4px; border-radius:3px; background:var(--panel-2); margin-top:10px; overflow:hidden; }
+.mastery-bar > div{ height:100%; }
+.mastery-low{ background:var(--red); }
+.mastery-mid{ background:var(--gold); }
+.mastery-high{ background:var(--accent); }
+
+/* quiz */
+.quiz-q{ padding:16px; border:1px solid var(--border-soft); border-radius:var(--radius); margin-bottom:14px; background:var(--panel); }
+.quiz-q .qtype{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text-faint); margin-bottom:6px; }
+.quiz-q textarea{ width:100%; min-height:70px; margin-top:10px; }
+.quiz-eval{ margin-top:10px; padding-top:10px; border-top:1px dashed var(--border-soft); font-size:13px; }
+.eval-correct{ color:var(--accent-strong); }
+.eval-partial{ color:var(--gold); }
+.eval-incorrect{ color:var(--red); }
+
+/* modal */
+.modal-overlay{ position:fixed; inset:0; background:rgba(10,11,12,.6); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px; }
+.modal{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); width:520px; max-width:100%; max-height:86vh; overflow-y:auto; }
+.modal-head{ padding:16px 18px; border-bottom:1px solid var(--border-soft); display:flex; justify-content:space-between; align-items:center; }
+.modal-head h3{ font-family:var(--serif); font-size:16px; font-weight:600; }
+.modal-body{ padding:18px; }
+.modal-foot{ padding:14px 18px; border-top:1px solid var(--border-soft); display:flex; justify-content:flex-end; gap:8px; }
+.field{ margin-bottom:14px; }
+.field label{ display:block; font-size:11.5px; color:var(--text-muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:.4px; font-family:var(--mono); }
+.field input, .field textarea, .field select{ width:100%; }
+.field textarea{ min-height:80px; resize:vertical; }
+.chip-row{ display:flex; gap:6px; flex-wrap:wrap; }
+.chip{ padding:5px 10px; border:1px solid var(--border); border-radius:20px; font-size:11.5px; color:var(--text-muted); }
+.chip.selected{ background:var(--accent-dim); border-color:transparent; color:var(--accent-strong); }
+
+/* search */
+.search-hero{ margin-bottom:24px; }
+.search-hero input{ width:100%; padding:14px 16px; font-size:15px; }
+.search-result{ display:flex; gap:14px; padding:12px 0; border-bottom:1px solid var(--border-soft); cursor:pointer; }
+.search-result:hover .sr-title{ color:var(--accent-strong); }
+.search-result .sr-time{ font-family:var(--mono); font-size:11.5px; color:var(--text-faint); width:70px; flex:none; }
+.search-result .sr-title{ font-size:13.5px; color:var(--text-dim); }
+.search-result .sr-kind{ font-family:var(--mono); font-size:10px; color:var(--text-faint); text-transform:uppercase; }
+
+/* onboarding */
+.onboard{ min-height:100vh; display:flex; align-items:center; justify-content:center; text-align:center; padding:24px; }
+.onboard .ob-mark{ font-family:var(--serif); font-size:44px; font-weight:600; margin-bottom:10px; }
+.onboard .ob-tag{ color:var(--text-muted); font-size:15px; margin-bottom:32px; }
+.onboard .ob-url{ font-family:var(--mono); font-size:12px; color:var(--text-faint); margin-bottom:24px; word-break:break-all; max-width:480px; }
+
+.toast{ position:fixed; bottom:20px; right:20px; background:var(--panel); border:1px solid var(--border); padding:11px 16px; border-radius:var(--radius-sm); font-size:13px; color:var(--text-dim); z-index:200; box-shadow:0 8px 24px rgba(0,0,0,.35); }
+
+.kbd-list{ display:grid; grid-template-columns:1fr 1fr; gap:8px 24px; }
+.kbd-list .kl-row{ display:flex; justify-content:space-between; font-size:13px; color:var(--text-muted); padding:4px 0; }
+.kbd-list kbd{ font-family:var(--mono); font-size:11px; background:var(--panel-2); border:1px solid var(--border); padding:2px 6px; border-radius:4px; color:var(--text-dim); }
+
+@media (max-width: 980px){
+  .sidebar{ display:none; }
+  .mobile-topbar{ display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--border-soft); background:var(--bg-raised); position:sticky; top:0; z-index:50; }
+  .mobile-topbar .brand-mark{ font-size:16px; }
+  .mobile-nav{ display:none; position:fixed; inset:0; background:var(--bg); z-index:60; padding:20px; }
+  .mobile-nav.open{ display:block; }
+  .video-layout{ grid-template-columns:1fr; }
+  .page{ padding:20px 16px 60px 16px; }
+  .grid-4{ grid-template-columns:1fr 1fr; }
+  .grid-3{ grid-template-columns:1fr 1fr; }
+  .grid-2{ grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body data-accent="sage">
+<div id="root"></div>
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+
+<script>
+/* =========================================================================
+   ORDER FLOW ACADEMY
+   Self-contained prototype. Vanilla JS, hash router, IndexedDB persistence.
+
+   NOTE ON AI FEATURES:
+   "Improve with Claude", "Ask Claude", quiz generation/evaluation, and
+   concept extraction all route through callClaude() below. Per the brief,
+   the Claude API key must never live in client-side JS. callClaude() is
+   built to POST to a server endpoint (configure in Settings → API
+   Configuration). Until a backend is configured, it clearly falls back to
+   a labeled "Demo mode" so the interface stays testable. See README.md
+   and server-example/ for a minimal server that wires the real API.
+
+   NOTE ON TRANSCRIPTS / CHAPTERS / SCREENSHOTS:
+   YouTube does not expose transcripts or chapter data to client-side code
+   without a server-side API key, and an embedded YouTube iframe's pixels
+   cannot be read into a <canvas> (cross-origin). So instead of faking this
+   data, the app provides clean import mechanisms: paste a transcript,
+   paste chapters, or upload a screenshot you captured yourself.
+   ========================================================================= */
+
+/* ---------------------------- IndexedDB ---------------------------- */
+const DB_NAME = 'orderFlowAcademy', DB_VERSION = 1, STORE = 'kv';
+let dbPromise = new Promise((resolve, reject) => {
+  const req = indexedDB.open(DB_NAME, DB_VERSION);
+  req.onupgradeneeded = () => { req.result.createObjectStore(STORE); };
+  req.onsuccess = () => resolve(req.result);
+  req.onerror = () => reject(req.error);
+});
+async function idbGet(key){
+  const db = await dbPromise;
+  return new Promise((res, rej) => {
+    const tx = db.transaction(STORE, 'readonly').objectStore(STORE).get(key);
+    tx.onsuccess = () => res(tx.result);
+    tx.onerror = () => rej(tx.error);
+  });
+}
+async function idbSet(key, value){
+  const db = await dbPromise;
+  return new Promise((res, rej) => {
+    const tx = db.transaction(STORE, 'readwrite').objectStore(STORE).put(value, key);
+    tx.onsuccess = () => res();
+    tx.onerror = () => rej(tx.error);
+  });
+}
+
+/* ---------------------------- State ---------------------------- */
+const DEFAULTS = {
+  settings: { accent:'sage', playbackSpeed:1, autoSave:true, reviewFrequency:'daily', aiStyle:'concise', apiEndpoint:'' },
+  meta: { onboarded:false, currentVideoId:null, courseTitle:'', playlistUrl:'' },
+  videos: [],
+  notes: [],
+  concepts: [],
+  quizzes: [],
+  reviews: {},
+  screenshots: []
+};
+let S = null; // in-memory state, mirrors IndexedDB
+
+async function loadState(){
+  S = {};
+  for(const key of Object.keys(DEFAULTS)){
+    const v = await idbGet(key);
+    S[key] = v === undefined ? JSON.parse(JSON.stringify(DEFAULTS[key])) : v;
+  }
+}
+async function persist(key){ await idbSet(key, S[key]); }
+
+/* ---------------------------- Utils ---------------------------- */
+function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4); }
+function fmtTime(sec){
+  sec = Math.max(0, Math.floor(sec||0));
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  if(h>0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+function parseTimeToSec(str){
+  const parts = String(str).trim().split(':').map(Number);
+  if(parts.some(isNaN)) return null;
+  if(parts.length===3) return parts[0]*3600+parts[1]*60+parts[2];
+  if(parts.length===2) return parts[0]*60+parts[1];
+  if(parts.length===1) return parts[0];
+  return null;
+}
+function fmtDate(ts){ const d = new Date(ts); return d.toLocaleDateString(undefined,{month:'short',day:'numeric'}); }
+function escapeHtml(str){ return String(str??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function youtubeIdFromUrl(url){
+  try{
+    const u = new URL(url);
+    if(u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+    if(u.searchParams.get('v')) return u.searchParams.get('v');
+    const m = u.pathname.match(/\/embed\/([^/?]+)/);
+    if(m) return m[1];
+  }catch(e){}
+  return null;
+}
+function toast(msg){
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.getElementById('toast-root').appendChild(el);
+  setTimeout(()=>el.remove(), 2600);
+}
+function getVideo(id){ return S.videos.find(v=>v.id===id); }
+function getConcept(id){ return S.concepts.find(c=>c.id===id); }
+
+/* ---------------------------- AI layer ---------------------------- */
+/* Pluggable call to a Claude-backed endpoint. Never place an API key here.
+   Configure S.settings.apiEndpoint (e.g. http://localhost:8787/api/claude)
+   pointing at the example server in /server-example, which holds the key
+   server-side. Without an endpoint configured, falls back to a clearly
+   labeled demo response so the UI remains usable for evaluation. */
+async function callClaude({ system, prompt, image, mode }){
+  const endpoint = S.settings.apiEndpoint;
+  if(endpoint){
+    try{
+      const res = await fetch(endpoint, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ system, prompt, image, mode })
+      });
+      if(!res.ok) throw new Error('backend error ' + res.status);
+      const data = await res.json();
+      return { text: data.text, demo:false };
+    }catch(err){
+      console.warn('callClaude backend failed, falling back to demo:', err);
+      return { text: demoResponse(mode, prompt), demo:true, error:true };
+    }
+  }
+  // No backend configured — demo mode.
+  await new Promise(r=>setTimeout(r, 350));
+  return { text: demoResponse(mode, prompt), demo:true };
+}
+function demoResponse(mode, prompt){
+  const note = "[Demo mode — no AI backend configured. Add an API endpoint in Settings → API Configuration to get real Claude responses. See README.md.]";
+  if(mode==='improve-note'){
+    return `${note}\n\nTitle: (needs your course content)\n\nExplanation: I can't produce a real explanation without a configured backend, because doing so would risk fabricating what the instructor said. Connect a backend to enable this.`;
+  }
+  if(mode==='ask'){
+    return `${note}\n\nI don't have a live connection to Claude right now, so I won't guess at what the instructor said. Once a backend is connected, I'll answer using only the transcript and notes for this video, and cite a timestamp when I can.`;
+  }
+  if(mode==='quiz-gen'){
+    return `${note}\n\nQuiz generation needs a real transcript for this video plus a connected backend — otherwise questions would be invented rather than drawn from the course.`;
+  }
+  if(mode==='quiz-eval'){
+    return `${note}\n\nCan't evaluate your answer without a backend connected — self-rate it for now using the notes below.`;
+  }
+  return note;
+}
+
+/* ---------------------------- Seed / onboarding ---------------------------- */
+const SEED_VIDEO_URL = 'https://youtu.be/KfjjHv7DB8o?list=PLBVwIU37953qr7DBLMJVXqcaVrJAaQy3D';
+const SEED_PLAYLIST_URL = 'https://www.youtube.com/playlist?list=PLBVwIU37953qr7DBLMJVXqcaVrJAaQy3D';
+
+async function fetchOEmbed(youtubeId){
+  try{
+    const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v='+youtubeId)}&format=json`);
+    if(!res.ok) throw new Error('oembed failed');
+    return await res.json();
+  }catch(e){ return null; }
+}
+
+async function addVideoByUrl(url){
+  const ytId = youtubeIdFromUrl(url);
+  if(!ytId){ toast('Could not read a YouTube video ID from that URL.'); return null; }
+  if(S.videos.some(v=>v.youtubeId===ytId)){ toast('That video is already in the course.'); return null; }
+  const meta = await fetchOEmbed(ytId);
+  const video = {
+    id: uid(),
+    youtubeId: ytId,
+    url,
+    title: meta ? meta.title : `Video (${ytId})`,
+    author: meta ? meta.author_name : '',
+    thumbnail: meta ? meta.thumbnail_url : '',
+    order: S.videos.length + 1,
+    duration: null,
+    chapters: [],
+    transcript: [],
+    progress: { percent:0, lastTime:0, completed:false, studySeconds:0 }
+  };
+  S.videos.push(video);
+  await persist('videos');
+  return video;
+}
+
+async function runOnboarding(){
+  toast('Adding course…');
+  S.meta.courseTitle = 'Complete Orderflow Trading Course For Beginners';
+  S.meta.playlistUrl = SEED_PLAYLIST_URL;
+  const v = await addVideoByUrl(SEED_VIDEO_URL);
+  S.meta.onboarded = true;
+  S.meta.currentVideoId = v ? v.id : null;
+  await persist('meta');
+  render();
+  if(v) location.hash = '#/video/' + v.id;
+}
+
+/* ---------------------------- Spaced repetition (simple SM-2 variant) ---------------------------- */
+function scheduleReview(conceptId, quality /* 0-5 */){
+  const now = Date.now();
+  let r = S.reviews[conceptId] || { interval:1, ease:2.5, due:now, lastReviewed:null, history:[] };
+  if(quality < 3){
+    r.interval = 1;
+  } else {
+    r.ease = Math.max(1.3, r.ease + (0.1 - (5-quality)*(0.08+(5-quality)*0.02)));
+    r.interval = r.interval <= 1 ? 1 : (r.interval===1 ? 3 : Math.round(r.interval * r.ease));
+  }
+  r.lastReviewed = now;
+  r.due = now + r.interval*86400000;
+  r.history.push({ ts:now, quality });
+  S.reviews[conceptId] = r;
+  persist('reviews');
+  recalcMastery(conceptId);
+}
+function recalcMastery(conceptId){
+  const c = getConcept(conceptId);
+  if(!c) return;
+  const r = S.reviews[conceptId];
+  const quizAnswers = S.quizzes.flatMap(q=>q.questions).filter(q=>q.conceptId===conceptId && q.evaluated);
+  let score = c.mastery?.confidenceSelf ?? 30;
+  if(r && r.history.length){
+    const recentQ = r.history.slice(-5).map(h=>h.quality);
+    const avgQ = recentQ.reduce((a,b)=>a+b,0)/recentQ.length; // 0-5
+    score = Math.round((avgQ/5)*70 + (c.mastery?.confidenceSelf ?? 30)*0.3);
+    // recency decay
+    const daysSince = (Date.now() - r.lastReviewed)/86400000;
+    if(daysSince > (r.interval||1)) score = Math.max(0, score - Math.min(20, Math.round(daysSince-r.interval)));
+  }
+  if(quizAnswers.length){
+    const correctRate = quizAnswers.filter(q=>q.correct).length / quizAnswers.length;
+    score = Math.round(score*0.6 + correctRate*100*0.4);
+  }
+  c.mastery = c.mastery || {};
+  c.mastery.score = Math.max(0, Math.min(100, score));
+  persist('concepts');
+}
+
+/* ---------------------------- Router ---------------------------- */
+function currentRoute(){
+  const hash = location.hash.slice(2) || 'dashboard';
+  const [path, ...rest] = hash.split('/');
+  return { path, id: rest.join('/') };
+}
+window.addEventListener('hashchange', render);
+
+const NAV = [
+  {id:'dashboard', label:'Dashboard', icon:'◈'},
+  {id:'course', label:'Course', icon:'▤'},
+  {id:'notes', label:'Notes', icon:'✎'},
+  {id:'concepts', label:'Concepts', icon:'◎'},
+  {id:'review', label:'Review', icon:'↻'},
+  {id:'quizzes', label:'Quizzes', icon:'?'},
+  {id:'search', label:'Search', icon:'⌕'},
+  {id:'settings', label:'Settings', icon:'⚙'},
+];
+
+function navShell(active){
+  return `
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">Order Flow Academy</div>
+      <div class="brand-sub">${escapeHtml(S.meta.courseTitle || 'No course loaded')}</div>
+    </div>
+    <div class="nav">
+      ${NAV.map(n=>`<a class="nav-item ${active===n.id?'active':''}" href="#/${n.id}"><span class="ico">${n.icon}</span>${n.label}</a>`).join('')}
+    </div>
+    <div class="nav-foot">
+      <div class="kbd-hint">Press <b>/</b> to search · <b>?</b> for shortcuts</div>
+    </div>
+  </div>
+  <div class="mobile-topbar">
+    <div class="brand-mark">Order Flow Academy</div>
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('mnav').classList.toggle('open')">Menu</button>
+  </div>
+  <div class="mobile-nav" id="mnav">
+    <button class="btn btn-ghost" style="float:right" onclick="document.getElementById('mnav').classList.remove('open')">Close</button>
+    <div style="clear:both"></div>
+    ${NAV.map(n=>`<a class="nav-item" style="font-size:16px;padding:14px 12px" href="#/${n.id}" onclick="document.getElementById('mnav').classList.remove('open')">${n.icon}&nbsp;&nbsp;${n.label}</a>`).join('')}
+  </div>`;
+}
+
+function render(){
+  const root = document.getElementById('root');
+  if(!S.meta.onboarded){
+    root.innerHTML = renderOnboarding();
+    return;
+  }
+  const { path, id } = currentRoute();
+  stopVideoTracking();
+  let content = '';
+  switch(path){
+    case 'dashboard': content = renderDashboard(); break;
+    case 'course': content = renderCourse(); break;
+    case 'video': content = renderVideoPage(id); break;
+    case 'notes': content = renderNotesPage(); break;
+    case 'concepts': content = renderConceptsPage(); break;
+    case 'concept': content = renderConceptDetail(id); break;
+    case 'review': content = renderReviewPage(); break;
+    case 'quizzes': content = renderQuizzesPage(); break;
+    case 'search': content = renderSearchPage(); break;
+    case 'stats': content = renderStatsPage(); break;
+    case 'settings': content = renderSettingsPage(); break;
+    default: content = renderDashboard();
+  }
+  root.innerHTML = `<div id="root-inner" style="display:flex;width:100%">${navShell(path)}<div class="main">${content}</div></div>`;
+  document.body.dataset.accent = S.settings.accent;
+  if(path==='video') initVideoPage(id);
+}
+
+/* ---------------------------- Onboarding ---------------------------- */
+function renderOnboarding(){
+  return `
+  <div class="onboard">
+    <div>
+      <div class="ob-mark">Order Flow Academy</div>
+      <div class="ob-tag">Learn the course. Build your knowledge. Retain it.</div>
+      <div class="ob-url">Playlist: ${escapeHtml(SEED_PLAYLIST_URL)}</div>
+      <button class="btn btn-accent" style="padding:12px 22px;font-size:14px" onclick="runOnboarding()">Add Course</button>
+    </div>
+  </div>`;
+}
+
+/* ---------------------------- Dashboard ---------------------------- */
+function courseStats(){
+  const total = S.videos.length;
+  const completed = S.videos.filter(v=>v.progress.completed).length;
+  const inProgress = S.videos.filter(v=>!v.progress.completed && v.progress.lastTime>0).length;
+  const pct = total ? Math.round(S.videos.reduce((a,v)=>a+(v.progress.percent||0),0)/total) : 0;
+  const studySeconds = S.videos.reduce((a,v)=>a+(v.progress.studySeconds||0),0);
+  const conceptsLearned = S.concepts.length;
+  const conceptsReview = Object.entries(S.reviews).filter(([id,r])=>r.due<=Date.now()).length;
+  const quizAnswers = S.quizzes.flatMap(q=>q.questions).filter(q=>q.evaluated);
+  const quizAcc = quizAnswers.length ? Math.round(quizAnswers.filter(q=>q.correct).length/quizAnswers.length*100) : null;
+  return { total, completed, inProgress, pct, studySeconds, conceptsLearned, conceptsReview, quizAcc };
+}
+
+function renderDashboard(){
+  const st = courseStats();
+  const current = S.videos.find(v=>v.id===S.meta.currentVideoId) || S.videos[0];
+  const dueConcepts = Object.entries(S.reviews).filter(([id,r])=>r.due<=Date.now()).map(([id])=>getConcept(id)).filter(Boolean);
+  const recentNotes = [...S.notes].sort((a,b)=>b.createdAt-a.createdAt).slice(0,5);
+
+  return `
+  <div class="page">
+    <h1 class="page-title">Dashboard</h1>
+    <div class="page-sub">${escapeHtml(S.meta.courseTitle)}</div>
+
+    <div class="grid grid-4" style="margin-bottom:22px">
+      <div class="stat"><div class="stat-val">${st.pct}%</div><div class="stat-label">Course completion</div></div>
+      <div class="stat"><div class="stat-val">${st.completed}/${st.total}</div><div class="stat-label">Videos completed</div></div>
+      <div class="stat"><div class="stat-val">${Math.round(st.studySeconds/60)}m</div><div class="stat-label">Total study time</div></div>
+      <div class="stat"><div class="stat-val">${st.quizAcc===null?'—':st.quizAcc+'%'}</div><div class="stat-label">Quiz accuracy</div></div>
+    </div>
+    <div class="pbar" style="margin-bottom:30px"><div style="width:${st.pct}%"></div></div>
+
+    <div class="grid grid-2" style="align-items:start">
+      <div>
+        <div class="eyebrow">Continue Learning</div>
+        ${current ? `
+        <div class="panel continue-card" style="cursor:pointer" onclick="location.hash='#/video/${current.id}'">
+          <div class="continue-thumb" style="background-image:url('${current.thumbnail||''}')"></div>
+          <div class="continue-meta">
+            <div class="cm-title">${escapeHtml(current.title)}</div>
+            <div class="cm-time">${fmtTime(current.progress.lastTime)} ${current.duration?'/ '+fmtTime(current.duration):''}</div>
+            <div style="margin-top:8px" class="btn btn-accent btn-sm">Continue →</div>
+          </div>
+        </div>` : `<div class="panel empty"><div class="empty-title">No videos yet</div><p>Add a video to begin.</p></div>`}
+
+        <div class="eyebrow" style="margin-top:26px">Recent Notes</div>
+        <div class="panel panel-pad">
+          ${recentNotes.length ? recentNotes.map(n=>`
+            <div class="note-card" style="cursor:pointer" onclick="location.hash='#/video/${n.videoId}?t=${n.timestamp}'">
+              <div class="nc-top">
+                <span class="nc-time mono">${fmtTime(n.timestamp)}</span>
+                <span class="tag">${escapeHtml(getVideo(n.videoId)?.title?.slice(0,30) || '')}${(getVideo(n.videoId)?.title||'').length>30?'…':''}</span>
+              </div>
+              <div class="nc-content">${escapeHtml(n.content).slice(0,140)}${n.content.length>140?'…':''}</div>
+            </div>`).join('') : `<div class="empty"><div class="empty-title">No notes yet</div><p>Notes you create while watching will appear here.</p></div>`}
+        </div>
+      </div>
+
+      <div>
+        <div class="eyebrow">Today's Review</div>
+        <div class="panel panel-pad">
+          ${dueConcepts.length ? dueConcepts.map(c=>`
+            <div class="review-row">
+              <span class="rn">${escapeHtml(c.name)}</span>
+              <span class="rd due">Due for review</span>
+            </div>`).join('') : `<div class="empty"><div class="empty-title">Nothing due today</div><p>Finish a lesson and complete a few questions to build your review queue.</p></div>`}
+          ${dueConcepts.length ? `<div style="margin-top:12px"><a class="btn btn-accent btn-sm" href="#/review">Start Review</a></div>` : ''}
+        </div>
+
+        <div class="eyebrow" style="margin-top:26px">Concepts</div>
+        <div class="panel panel-pad">
+          <div class="review-row"><span class="rn">Concepts learned</span><span class="rd mono">${st.conceptsLearned}</span></div>
+          <div class="review-row"><span class="rn">Requiring review</span><span class="rd mono">${st.conceptsReview}</span></div>
+          <div class="review-row"><span class="rn">In progress</span><span class="rd mono">${st.inProgress}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------------------- Course page ---------------------------- */
+function renderCourse(){
+  const videos = [...S.videos].sort((a,b)=>a.order-b.order);
+  return `
+  <div class="page">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <h1 class="page-title">Course</h1>
+        <div class="page-sub">${escapeHtml(S.meta.courseTitle)}</div>
+      </div>
+      <button class="btn btn-accent" onclick="openAddVideoModal()">Add Video</button>
+    </div>
+    ${videos.length===0 ? `<div class="panel empty"><div class="empty-title">No videos yet</div><p>Add a video from the playlist by pasting its URL.</p><button class="btn btn-accent" onclick="openAddVideoModal()">Add Video</button></div>` : ''}
+    ${videos.map((v,i)=>{
+      const notesCount = S.notes.filter(n=>n.videoId===v.id).length;
+      const quizCount = S.quizzes.filter(q=>q.videoId===v.id).length;
+      const concepts = S.concepts.filter(c=>c.videoRefs?.some(r=>r.videoId===v.id));
+      return `
+      <div class="course-video">
+        <div class="cv-head" onclick="toggleChapters('${v.id}')">
+          <div class="cv-num mono">${String(i+1).padStart(2,'0')}</div>
+          <div class="cv-check ${v.progress.completed?'done':''}"></div>
+          <div class="cv-title">${escapeHtml(v.title)}<span class="cv-sub">${v.chapters.length} chapters · ${v.transcript.length?'\u2713 transcript':'no transcript imported'}</span></div>
+          <div class="cv-stats">
+            <div class="cv-stat">${v.progress.percent||0}%<br><span style="color:var(--text-faint)">progress</span></div>
+            <div class="cv-stat">${v.duration?fmtTime(v.duration):'—'}<br><span style="color:var(--text-faint)">duration</span></div>
+            <div class="cv-stat">${notesCount}<br><span style="color:var(--text-faint)">notes</span></div>
+            <div class="cv-stat">${quizCount?quizCount+' taken':'none'}<br><span style="color:var(--text-faint)">quiz</span></div>
+          </div>
+          <a class="btn btn-sm" href="#/video/${v.id}" onclick="event.stopPropagation()">Open</a>
+        </div>
+        <div class="cv-body" id="cvbody-${v.id}">
+          ${concepts.length ? `<div style="margin-bottom:10px">${concepts.map(c=>`<a class="tag" style="margin-right:4px" href="#/concept/${c.id}">${escapeHtml(c.name)}</a>`).join('')}</div>` : ''}
+          ${v.chapters.length ? v.chapters.map(ch=>`<div class="cv-chapter"><span>${escapeHtml(ch.title)}</span><span class="mono">${fmtTime(ch.start)}</span></div>`).join('') : `<div style="color:var(--text-faint);font-size:12.5px;padding:8px 0">No chapters yet. Open the video and add them from the Transcript tab.</div>`}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+function toggleChapters(id){ document.getElementById('cvbody-'+id).classList.toggle('open'); }
+
+/* ---------------------------- Add video modal ---------------------------- */
+function openAddVideoModal(){
+  showModal(`
+    <div class="modal-head"><h3>Add Video</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>YouTube URL</label><input id="add-video-url" placeholder="https://youtu.be/..." /></div>
+      <div style="font-size:12px;color:var(--text-faint)">The title and thumbnail are pulled from YouTube automatically. Transcript and chapters can be imported afterward from the video page.</div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-accent" onclick="submitAddVideo()">Add</button></div>
+  `);
+}
+async function submitAddVideo(){
+  const url = document.getElementById('add-video-url').value.trim();
+  if(!url) return;
+  const v = await addVideoByUrl(url);
+  closeModal();
+  if(v){ toast('Video added.'); render(); }
+}
+
+/* ---------------------------- Video page ---------------------------- */
+let ytPlayer = null, ytInterval = null, activeVideoId = null, activeTab = 'notes';
+function stopVideoTracking(){ if(ytInterval){ clearInterval(ytInterval); ytInterval=null; } }
+
+function renderVideoPage(id){
+  const v = getVideo(id);
+  if(!v) return `<div class="page"><div class="panel empty">Video not found.</div></div>`;
+  activeVideoId = id;
+  const notesForVideo = S.notes.filter(n=>n.videoId===id).sort((a,b)=>a.timestamp-b.timestamp);
+  const ticks = [
+    ...v.chapters.map(c=>({t:c.start, kind:'chapter'})),
+    ...notesForVideo.map(n=>({t:n.timestamp, kind:'note'}))
+  ];
+  const duration = v.duration || 3600;
+
+  return `
+  <div class="page page-wide">
+    <h1 class="page-title" style="font-size:22px">${escapeHtml(v.title)}</h1>
+    <div class="page-sub">${v.author?escapeHtml(v.author)+' · ':''}Video ${v.order} of ${S.videos.length}</div>
+
+    <div class="video-layout">
+      <div>
+        <div class="video-wrap"><div id="yt-player"></div></div>
+        <div class="tick-rail" id="tick-rail">
+          <div class="rail-line"></div>
+          ${ticks.map(tk=>`<div class="tick ${tk.kind==='note'?'note':''}" style="left:${Math.min(99,(tk.t/duration)*100)}%" onclick="seekTo(${tk.t})" title="${fmtTime(tk.t)}"></div>`).join('')}
+        </div>
+        <div class="video-controls">
+          <div class="vc-left">
+            <span id="vc-current">${fmtTime(v.progress.lastTime)}</span> / <span id="vc-duration">${v.duration?fmtTime(v.duration):'--:--'}</span>
+            <span style="margin-left:10px">${v.progress.percent||0}% complete</span>
+          </div>
+          <div class="vc-right">
+            <button class="btn btn-sm" onclick="jumpChapter(-1)">◀ Prev chapter</button>
+            <button class="btn btn-sm" onclick="jumpChapter(1)">Next chapter ▶</button>
+            <button class="btn btn-sm" onclick="openNoteModal()">＋ Add Note</button>
+            <button class="btn btn-sm" onclick="openScreenshotModal()">Capture Frame</button>
+            <button class="btn btn-sm btn-accent" onclick="markComplete()">Mark section complete</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-tabs">
+          ${['notes','transcript','concepts','ask'].map(t=>`<div class="panel-tab ${activeTab===t?'active':''}" onclick="switchTab('${t}')">${t==='ask'?'Ask Claude':t[0].toUpperCase()+t.slice(1)}</div>`).join('')}
+        </div>
+        <div class="tab-content" id="tab-content">${renderTabContent(v)}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderTabContent(v){
+  if(activeTab==='notes') return renderNotesTab(v);
+  if(activeTab==='transcript') return renderTranscriptTab(v);
+  if(activeTab==='concepts') return renderConceptsTab(v);
+  if(activeTab==='ask') return renderAskTab(v);
+  return '';
+}
+function switchTab(t){ activeTab=t; document.querySelectorAll('.panel-tab').forEach(el=>el.classList.remove('active')); event.target.classList.add('active'); document.getElementById('tab-content').innerHTML = renderTabContent(getVideo(activeVideoId)); }
+
+function renderNotesTab(v){
+  const notes = S.notes.filter(n=>n.videoId===v.id).sort((a,b)=>b.timestamp-a.timestamp);
+  if(!notes.length) return `<div class="empty"><div class="empty-title">No notes yet</div><p>Notes you create while watching will appear here.</p><button class="btn btn-accent" onclick="openNoteModal()">Create Note</button></div>`;
+  return notes.map(n=>`
+    <div class="note-card">
+      <div class="nc-top">
+        <span class="nc-time mono" onclick="seekTo(${n.timestamp})">${fmtTime(n.timestamp)}</span>
+        <div class="nc-actions">
+          ${n.source==='user' ? `<button class="btn btn-ghost btn-sm" onclick="improveNote('${n.id}')">Improve with Claude</button>` : ''}
+          <button class="btn btn-ghost btn-sm" onclick="openNoteModal('${n.id}')">Edit</button>
+          <button class="btn btn-ghost btn-sm btn-danger" onclick="deleteNote('${n.id}')">Delete</button>
+        </div>
+      </div>
+      <div class="nc-content">${escapeHtml(n.content)}</div>
+      ${n.aiExplanation ? `<div class="nc-ai"><span class="badge-source badge-ai">Claude explanation</span><div style="margin-top:6px;font-size:13px;color:var(--text-dim)">${escapeHtml(n.aiExplanation)}</div></div>` : ''}
+      <div class="nc-tags">${(n.tags||[]).map(t=>`<span class="tag tag-${t.toLowerCase()}">${t}</span>`).join('')}</div>
+    </div>`).join('');
+}
+
+function renderTranscriptTab(v){
+  if(!v.transcript.length){
+    return `<div class="empty">
+      <div class="empty-title">No transcript imported</div>
+      <p>YouTube transcripts aren't accessible from the browser without a server-side key. Paste one in to unlock timestamp search, highlighting, and Ask Claude context.</p>
+      <button class="btn btn-accent" onclick="openTranscriptImport()">Import Transcript</button>
+      <button class="btn" style="margin-left:8px" onclick="openChapterImport()">Import Chapters</button>
+    </div>`;
+  }
+  return `
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input id="transcript-search" placeholder="Search this transcript…" oninput="filterTranscript(this.value)" style="flex:1" />
+      <button class="btn btn-sm" onclick="openTranscriptImport()">Re-import</button>
+    </div>
+    <div id="transcript-lines">
+      ${v.transcript.map((seg,i)=>`<div class="transcript-line" data-start="${seg.start}" onclick="seekTo(${seg.start})"><span class="tl-time mono">${fmtTime(seg.start)}</span><span>${escapeHtml(seg.text)}</span></div>`).join('')}
+    </div>`;
+}
+function filterTranscript(q){
+  q = q.toLowerCase();
+  document.querySelectorAll('.transcript-line').forEach(el=>{
+    el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function renderConceptsTab(v){
+  const concepts = S.concepts.filter(c=>c.videoRefs?.some(r=>r.videoId===v.id));
+  return `
+  <div style="margin-bottom:12px"><button class="btn btn-sm" onclick="extractConcepts('${v.id}')">Extract concepts with Claude</button></div>
+  ${concepts.length ? concepts.map(c=>`
+    <div class="concept-card" style="margin-bottom:10px;cursor:pointer" onclick="location.hash='#/concept/${c.id}'">
+      <div class="cc-name">${escapeHtml(c.name)}</div>
+      <div class="mastery-bar"><div class="${masteryClass(c.mastery?.score)}" style="width:${c.mastery?.score||0}%"></div></div>
+    </div>`).join('') : `<div class="empty"><div class="empty-title">No concepts linked yet</div><p>Concepts you tag in notes, or extract with Claude, will appear here.</p></div>`}
+  `;
+}
+function masteryClass(score){ score=score||0; if(score<40) return 'mastery-low'; if(score<75) return 'mastery-mid'; return 'mastery-high'; }
+
+let chatHistory = {};
+function renderAskTab(v){
+  chatHistory[v.id] = chatHistory[v.id] || [];
+  const msgs = chatHistory[v.id];
+  return `
+  <div style="display:flex;flex-direction:column;height:520px">
+    <div style="flex:1;overflow-y:auto;padding-bottom:8px" id="chat-log">
+      ${msgs.length ? msgs.map(m=>`
+        <div class="chat-msg ${m.role}">
+          <div class="cm-role">${m.role==='user'?'You':'Claude'}</div>
+          <div class="cm-body">${escapeHtml(m.text)}</div>
+          ${m.jumpTo!=null ? `<div class="chat-jump" onclick="seekTo(${m.jumpTo})">Jump to ${fmtTime(m.jumpTo)}</div>` : ''}
+        </div>`).join('') : `<div class="empty"><div class="empty-title">Ask about this video</div><p>e.g. "What did the instructor mean by absorption?" or "Test me on what I just watched."</p></div>`}
+    </div>
+    <div class="chat-input-row">
+      <input id="chat-input" placeholder="Ask about this video…" onkeydown="if(event.key==='Enter')sendChat()" />
+      <button class="btn btn-accent btn-sm" onclick="sendChat()">Send</button>
+    </div>
+  </div>`;
+}
+async function sendChat(){
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if(!text) return;
+  const v = getVideo(activeVideoId);
+  chatHistory[v.id].push({role:'user', text});
+  input.value='';
+  document.getElementById('tab-content').innerHTML = renderTabContent(v);
+  const current = v.progress.lastTime || 0;
+  // Build limited, relevant context: nearby transcript + chapter + notes, per spec (don't send whole course).
+  const nearby = v.transcript.filter(seg => Math.abs(seg.start-current) < 240).map(s=>`${fmtTime(s.start)} ${s.text}`).join('\n');
+  const system = `You are a course-aware study assistant for an order-flow trading course. Only use the provided transcript/notes context. If the answer isn't in the context, say so explicitly rather than inventing course content. Never give trading signals or "buy/sell" advice — only teach concepts. When relevant, cite a timestamp from the context in MM:SS form.`;
+  const prompt = `Video: ${v.title}\nContext (nearby transcript):\n${nearby || '(no transcript imported for this section)'}\n\nQuestion: ${text}`;
+  const result = await callClaude({ system, prompt, mode:'ask' });
+  const jumpMatch = result.text.match(/(\d{1,2}:\d{2}(:\d{2})?)/);
+  chatHistory[v.id].push({ role:'assistant', text: result.text, jumpTo: jumpMatch ? parseTimeToSec(jumpMatch[1]) : null });
+  document.getElementById('tab-content').innerHTML = renderTabContent(v);
+}
+
+function initVideoPage(id){
+  const v = getVideo(id);
+  if(!v) return;
+  const params = new URLSearchParams(location.hash.split('?')[1]||'');
+  const startAt = params.get('t') ? Number(params.get('t')) : (v.progress.lastTime||0);
+
+  function createPlayer(){
+    ytPlayer = new YT.Player('yt-player', {
+      videoId: v.youtubeId,
+      playerVars: { rel:0, playsinline:1, start: Math.floor(startAt) },
+      events: {
+        onReady: (e)=>{
+          e.target.setPlaybackRate(S.settings.playbackSpeed||1);
+          const dur = e.target.getDuration();
+          if(dur){ v.duration = dur; persist('videos'); const el=document.getElementById('vc-duration'); if(el) el.textContent=fmtTime(dur); }
+          if(startAt>2){ toast(`Resumed at ${fmtTime(startAt)}`); }
+        },
+        onStateChange: onPlayerStateChange
+      }
+    });
+  }
+  if(window.YT && window.YT.Player){ createPlayer(); }
+  else{
+    window.onYouTubeIframeAPIReady = createPlayer;
+    if(!document.getElementById('yt-iframe-api')){
+      const tag = document.createElement('script');
+      tag.id='yt-iframe-api'; tag.src='https://www.youtube.com/iframe_api';
+      document.body.appendChild(tag);
+    }
+  }
+}
+function onPlayerStateChange(e){
+  if(e.data === YT.PlayerState.PLAYING){
+    ytInterval = setInterval(trackProgress, 2000);
+  } else {
+    stopVideoTracking();
+  }
+}
+async function trackProgress(){
+  if(!ytPlayer || !ytPlayer.getCurrentTime) return;
+  const v = getVideo(activeVideoId);
+  if(!v) return;
+  const t = ytPlayer.getCurrentTime();
+  const dur = ytPlayer.getDuration() || v.duration || 0;
+  v.progress.lastTime = t;
+  v.progress.studySeconds = (v.progress.studySeconds||0) + 2;
+  if(dur){ v.progress.percent = Math.min(100, Math.round((t/dur)*100)); v.duration = dur; }
+  if(v.progress.percent >= 95) v.progress.completed = true;
+  S.meta.currentVideoId = v.id;
+  const curEl = document.getElementById('vc-current'); if(curEl) curEl.textContent = fmtTime(t);
+  await persist('videos'); await persist('meta');
+  // highlight active transcript line
+  document.querySelectorAll('.transcript-line').forEach(el=>{
+    el.classList.toggle('active', Math.abs(Number(el.dataset.start)-t) < 3);
+  });
+}
+function seekTo(sec){ if(ytPlayer && ytPlayer.seekTo){ ytPlayer.seekTo(sec, true); ytPlayer.playVideo(); } }
+function jumpChapter(dir){
+  const v = getVideo(activeVideoId); if(!v || !v.chapters.length) { toast('No chapters yet.'); return; }
+  const t = ytPlayer ? ytPlayer.getCurrentTime() : v.progress.lastTime;
+  const chapters = [...v.chapters].sort((a,b)=>a.start-b.start);
+  let target;
+  if(dir>0){ target = chapters.find(c=>c.start > t+1); }
+  else{ target = [...chapters].reverse().find(c=>c.start < t-1); }
+  if(target) seekTo(target.start); else toast(dir>0?'Last chapter.':'First chapter.');
+}
+async function markComplete(){
+  const v = getVideo(activeVideoId); if(!v) return;
+  v.progress.completed = true; v.progress.percent = 100;
+  await persist('videos');
+  toast('Marked complete.');
+  render();
+}
+
+/* ---------------------------- Notes CRUD ---------------------------- */
+function openNoteModal(noteId){
+  const v = getVideo(activeVideoId);
+  const editing = noteId ? S.notes.find(n=>n.id===noteId) : null;
+  const t = editing ? editing.timestamp : Math.floor(ytPlayer ? ytPlayer.getCurrentTime() : (v?.progress.lastTime||0));
+  const allTags = ['Important','Question','Review','Example','Strategy','Definition','Confusing'];
+  showModal(`
+    <div class="modal-head"><h3>${editing?'Edit Note':'Add Note'}</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Timestamp</label><input id="note-time" value="${fmtTime(t)}" /></div>
+      <div class="field"><label>Note</label><textarea id="note-content" placeholder="What's happening in the market right now?">${editing?escapeHtml(editing.content):''}</textarea></div>
+      <div class="field"><label>Tags</label>
+        <div class="chip-row" id="note-tags">
+          ${allTags.map(tag=>`<div class="chip ${editing && editing.tags?.includes(tag)?'selected':''}" data-tag="${tag}" onclick="this.classList.toggle('selected')">${tag}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-accent" onclick="submitNote('${editing?editing.id:''}', '${v?.id||''}')">Save</button></div>
+  `);
+}
+async function submitNote(noteId, videoId){
+  const timestamp = parseTimeToSec(document.getElementById('note-time').value);
+  const content = document.getElementById('note-content').value.trim();
+  const tags = [...document.querySelectorAll('#note-tags .chip.selected')].map(c=>c.dataset.tag);
+  if(timestamp===null || !content){ toast('Add a timestamp and note content.'); return; }
+  const v = getVideo(videoId);
+  const chapter = v?.chapters.slice().reverse().find(c=>c.start<=timestamp);
+  if(noteId){
+    const n = S.notes.find(n=>n.id===noteId);
+    Object.assign(n, { timestamp, content, tags, updatedAt: Date.now() });
+  } else {
+    S.notes.push({ id:uid(), videoId, timestamp, chapterTitle: chapter?.title||'', tags, content, source:'user', createdAt: Date.now() });
+  }
+  await persist('notes');
+  closeModal();
+  toast('Note saved.');
+  if(currentRoute().path==='video') document.getElementById('tab-content').innerHTML = renderTabContent(v);
+  else render();
+}
+async function deleteNote(id){
+  S.notes = S.notes.filter(n=>n.id!==id);
+  await persist('notes');
+  toast('Note deleted.');
+  const v = getVideo(activeVideoId);
+  if(v) document.getElementById('tab-content').innerHTML = renderTabContent(v);
+  else render();
+}
+async function improveNote(id){
+  const n = S.notes.find(n=>n.id===id); if(!n) return;
+  const v = getVideo(n.videoId);
+  toast('Asking Claude…');
+  const nearby = v.transcript.filter(seg => Math.abs(seg.start-n.timestamp) < 180).map(s=>`${fmtTime(s.start)} ${s.text}`).join('\n');
+  const system = `Rewrite the learner's rough note into a clearer study note (a short title + explanation). Base the explanation ONLY on the provided transcript context. If the context doesn't clearly support an interpretation, say the course material doesn't cover this clearly rather than inventing an explanation. Never present your explanation as something the instructor literally said — label it as your own explanation.`;
+  const prompt = `Rough note at ${fmtTime(n.timestamp)}: "${n.content}"\n\nNearby transcript:\n${nearby || '(none imported)'}`;
+  const result = await callClaude({ system, prompt, mode:'improve-note' });
+  n.aiExplanation = result.text;
+  await persist('notes');
+  document.getElementById('tab-content').innerHTML = renderTabContent(v);
+}
+
+/* ---------------------------- Transcript / chapter import ---------------------------- */
+function openTranscriptImport(){
+  showModal(`
+    <div class="modal-head"><h3>Import Transcript</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--text-faint);margin-bottom:10px">One line per segment: <span class="mono">MM:SS text of what was said</span></div>
+      <div class="field"><textarea id="transcript-paste" style="min-height:220px" placeholder="00:00 Welcome to the course\n00:14 Today we'll cover futures contracts..."></textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-accent" onclick="submitTranscript()">Import</button></div>
+  `);
+}
+async function submitTranscript(){
+  const raw = document.getElementById('transcript-paste').value;
+  const v = getVideo(activeVideoId);
+  const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  const segs = [];
+  for(const line of lines){
+    const m = line.match(/^(\d{1,2}:\d{2}(?::\d{2})?)\s+(.*)$/);
+    if(m){ const start = parseTimeToSec(m[1]); if(start!==null) segs.push({ start, text: m[2] }); }
+  }
+  if(!segs.length){ toast('No valid lines found. Use "MM:SS text" per line.'); return; }
+  v.transcript = segs.sort((a,b)=>a.start-b.start);
+  await persist('videos');
+  closeModal();
+  toast(`Imported ${segs.length} transcript segments.`);
+  document.getElementById('tab-content').innerHTML = renderTabContent(v);
+}
+function openChapterImport(){
+  showModal(`
+    <div class="modal-head"><h3>Import Chapters</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--text-faint);margin-bottom:10px">One line per chapter: <span class="mono">MM:SS Chapter title</span></div>
+      <div class="field"><textarea id="chapter-paste" style="min-height:180px" placeholder="00:00 Introduction\n05:12 Futures contracts explained"></textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-accent" onclick="submitChapters()">Import</button></div>
+  `);
+}
+async function submitChapters(){
+  const raw = document.getElementById('chapter-paste').value;
+  const v = getVideo(activeVideoId);
+  const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  const chs = [];
+  for(const line of lines){
+    const m = line.match(/^(\d{1,2}:\d{2}(?::\d{2})?)\s+(.*)$/);
+    if(m){ const start = parseTimeToSec(m[1]); if(start!==null) chs.push({ id:uid(), start, title:m[2] }); }
+  }
+  if(!chs.length){ toast('No valid lines found. Use "MM:SS Title" per line.'); return; }
+  v.chapters = chs.sort((a,b)=>a.start-b.start);
+  await persist('videos');
+  closeModal();
+  toast(`Imported ${chs.length} chapters.`);
+  render();
+}
+
+/* ---------------------------- Screenshot capture ---------------------------- */
+function openScreenshotModal(){
+  const v = getVideo(activeVideoId);
+  const t = ytPlayer ? ytPlayer.getCurrentTime() : (v?.progress.lastTime||0);
+  showModal(`
+    <div class="modal-head"><h3>Capture Frame</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--text-faint);margin-bottom:12px">Browsers can't read pixels out of an embedded YouTube player (cross-origin), so this can't grab the frame automatically. Take a screenshot yourself at <b class="mono">${fmtTime(t)}</b> and upload it here — it'll be attached to this timestamp and Claude will actually see the image when you ask about it.</div>
+      <div class="field"><label>Timestamp</label><input id="ss-time" value="${fmtTime(t)}" /></div>
+      <div class="field"><label>Screenshot file</label><input type="file" id="ss-file" accept="image/*" /></div>
+      <div class="field"><label>Note (optional)</label><textarea id="ss-note" placeholder="What should Claude look at?"></textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-accent" onclick="submitScreenshot()">Save</button></div>
+  `);
+}
+async function submitScreenshot(){
+  const file = document.getElementById('ss-file').files[0];
+  const t = parseTimeToSec(document.getElementById('ss-time').value);
+  const note = document.getElementById('ss-note').value.trim();
+  if(!file){ toast('Choose an image file.'); return; }
+  const reader = new FileReader();
+  reader.onload = async () => {
+    S.screenshots.push({ id:uid(), videoId:activeVideoId, timestamp:t, dataUrl:reader.result, note, createdAt:Date.now() });
+    await persist('screenshots');
+    closeModal();
+    toast('Frame captured.');
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ---------------------------- Concepts ---------------------------- */
+async function extractConcepts(videoId){
+  const v = getVideo(videoId);
+  if(!v.transcript.length && !S.notes.some(n=>n.videoId===videoId)){
+    toast('Import a transcript or add notes first — concepts are drawn from course material, not invented.');
+    return;
+  }
+  toast('Extracting concepts…');
+  const system = `Extract 2-5 distinct trading concepts actually present in the given transcript/notes. Respond as a JSON array of {name, courseExplanation, simpleExplanation}. Only use concepts clearly present in the text — do not invent concepts absent from the material.`;
+  const prompt = `Transcript:\n${v.transcript.map(s=>s.text).join(' ')}\n\nNotes:\n${S.notes.filter(n=>n.videoId===videoId).map(n=>n.content).join('\n')}`;
+  const result = await callClaude({ system, prompt, mode:'concepts' });
+  if(result.demo){
+    toast('Concept extraction needs a connected AI backend (see Settings). Add concepts manually for now.');
+    return;
+  }
+  try{
+    const parsed = JSON.parse(result.text);
+    for(const c of parsed){
+      let existing = S.concepts.find(x=>x.name.toLowerCase()===c.name.toLowerCase());
+      if(!existing){
+        existing = { id:uid(), name:c.name, courseExplanation:'', simpleExplanation:'', related:[], videoRefs:[], noteIds:[], mastery:{score:20,confidenceSelf:20} };
+        S.concepts.push(existing);
+      }
+      existing.courseExplanation = c.courseExplanation || existing.courseExplanation;
+      existing.simpleExplanation = c.simpleExplanation || existing.simpleExplanation;
+      if(!existing.videoRefs.some(r=>r.videoId===videoId)) existing.videoRefs.push({videoId, timestamp:0});
+    }
+    await persist('concepts');
+    document.getElementById('tab-content').innerHTML = renderTabContent(v);
+    toast('Concepts extracted.');
+  }catch(e){ toast('Could not parse concept response.'); }
+}
+
+function openAddConceptModal(){
+  showModal(`
+    <div class="modal-head"><h3>Add Concept</h3><button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Name</label><input id="cn-name" placeholder="e.g. Absorption" /></div>
+      <div class="field"><label>Course explanation</label><textarea id="cn-course" placeholder="What the instructor actually said"></textarea></div>
+      <div class="field"><label>Simple explanation (optional)</label><textarea id="cn-simple"></textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-accent" onclick="submitConcept()">Save</button></div>
+  `);
+}
+async function submitConcept(){
+  const name = document.getElementById('cn-name').value.trim();
+  if(!name){ toast('Name is required.'); return; }
+  S.concepts.push({ id:uid(), name, courseExplanation:document.getElementById('cn-course').value.trim(), simpleExplanation:document.getElementById('cn-simple').value.trim(), related:[], videoRefs: activeVideoId?[{videoId:activeVideoId,timestamp:0}]:[], noteIds:[], mastery:{score:20,confidenceSelf:20} });
+  await persist('concepts');
+  closeModal();
+  toast('Concept added.');
+  render();
+}
+
+function renderConceptsPage(){
+  const concepts = S.concepts;
+  return `
+  <div class="page">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><h1 class="page-title">Concepts</h1><div class="page-sub">Everything the course has taught you, organized.</div></div>
+      <button class="btn btn-accent" onclick="openAddConceptModal()">Add Concept</button>
+    </div>
+    ${concepts.length ? `<div class="grid grid-3">${concepts.map(c=>`
+      <div class="concept-card" onclick="location.hash='#/concept/${c.id}'" style="cursor:pointer">
+        <div class="cc-name">${escapeHtml(c.name)}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px">${escapeHtml((c.simpleExplanation||c.courseExplanation||'').slice(0,90))}${(c.simpleExplanation||c.courseExplanation||'').length>90?'…':''}</div>
+        <div class="mastery-bar"><div class="${masteryClass(c.mastery?.score)}" style="width:${c.mastery?.score||0}%"></div></div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text-faint);margin-top:6px">${c.mastery?.score||0}% mastery</div>
+      </div>`).join('')}</div>` :
+      `<div class="panel empty"><div class="empty-title">No concepts yet</div><p>Concepts appear as you take notes, extract them from videos, or add them yourself.</p><button class="btn btn-accent" onclick="openAddConceptModal()">Add Concept</button></div>`}
+  </div>`;
+}
+
+function renderConceptDetail(id){
+  const c = getConcept(id);
+  if(!c) return `<div class="page"><div class="panel empty">Concept not found.</div></div>`;
+  const notes = S.notes.filter(n=>c.noteIds?.includes(n.id) || (c.videoRefs||[]).some(r=>r.videoId===n.videoId));
+  const r = S.reviews[id];
+  return `
+  <div class="page">
+    <h1 class="page-title">${escapeHtml(c.name)}</h1>
+    <div class="mastery-bar" style="max-width:300px;margin-bottom:6px"><div class="${masteryClass(c.mastery?.score)}" style="width:${c.mastery?.score||0}%"></div></div>
+    <div class="page-sub mono">${c.mastery?.score||0}% mastery ${r?`· next review ${fmtDate(r.due)}`:'· not yet scheduled for review'}</div>
+
+    <div class="grid grid-2">
+      <div class="panel panel-pad">
+        <div class="eyebrow">Course explanation</div>
+        <div style="font-size:13.5px;color:var(--text-dim)">${escapeHtml(c.courseExplanation)||'<span style="color:var(--text-faint)">Not recorded yet — add it from what the instructor said.</span>'}</div>
+        <hr class="divider">
+        <div class="eyebrow">Simple explanation</div>
+        <div style="font-size:13.5px;color:var(--text-dim)">${escapeHtml(c.simpleExplanation)||'<span style="color:var(--text-faint)">None yet.</span>'}</div>
+        <hr class="divider">
+        <div class="eyebrow">Related concepts</div>
+        <div>${(c.related||[]).length ? c.related.map(r=>`<span class="tag" style="margin-right:4px">${escapeHtml(r)}</span>`).join('') : '<span style="color:var(--text-faint);font-size:12.5px">None linked yet.</span>'}</div>
+      </div>
+      <div class="panel panel-pad">
+        <div class="eyebrow">Self-rated confidence</div>
+        <input type="range" min="0" max="100" value="${c.mastery?.confidenceSelf||20}" oninput="updateConfidence('${c.id}', this.value); document.getElementById('conf-val-${c.id}').textContent=this.value" style="width:100%">
+        <div class="mono" id="conf-val-${c.id}" style="text-align:right;color:var(--text-muted)">${c.mastery?.confidenceSelf||20}</div>
+        <hr class="divider">
+        <div class="eyebrow">Review history</div>
+        ${r && r.history.length ? r.history.slice().reverse().map(h=>`<div class="review-row"><span class="rn mono">${fmtDate(h.ts)}</span><span class="rd mono">quality ${h.quality}/5</span></div>`).join('') : `<div style="color:var(--text-faint);font-size:12.5px">No review sessions yet.</div>`}
+        <button class="btn btn-sm btn-accent" style="margin-top:10px" onclick="startSingleConceptReview('${c.id}')">Review this concept</button>
+      </div>
+    </div>
+
+    <div class="eyebrow" style="margin-top:24px">My notes</div>
+    <div class="panel panel-pad">
+      ${notes.length ? notes.map(n=>`<div class="note-card"><div class="nc-top"><span class="nc-time mono" onclick="location.hash='#/video/${n.videoId}?t=${n.timestamp}'">${fmtTime(n.timestamp)}</span><span class="badge-source badge-me">Me</span></div><div class="nc-content">${escapeHtml(n.content)}</div></div>`).join('') : `<div style="color:var(--text-faint);font-size:12.5px">No notes linked to this concept yet.</div>`}
+    </div>
+
+    <div class="eyebrow" style="margin-top:24px">Video timestamps</div>
+    <div class="panel panel-pad">
+      ${(c.videoRefs||[]).length ? c.videoRefs.map(r=>{ const vid=getVideo(r.videoId); return vid?`<div class="review-row"><span class="rn">${escapeHtml(vid.title)}</span><a class="rd mono" href="#/video/${vid.id}?t=${r.timestamp}">${fmtTime(r.timestamp)} →</a></div>`:''; }).join('') : `<div style="color:var(--text-faint);font-size:12.5px">Not linked to a specific timestamp yet.</div>`}
+    </div>
+  </div>`;
+}
+async function updateConfidence(id, val){
+  const c = getConcept(id); c.mastery = c.mastery||{}; c.mastery.confidenceSelf = Number(val);
+  await persist('concepts'); recalcMastery(id);
+}
+
+/* ---------------------------- Notes page (all notes) ---------------------------- */
+function renderNotesPage(){
+  const notes = [...S.notes].sort((a,b)=>b.createdAt-a.createdAt);
+  return `
+  <div class="page">
+    <h1 class="page-title">Notes</h1>
+    <div class="page-sub">Every timestamped note across the course.</div>
+    ${notes.length ? notes.map(n=>{
+      const v = getVideo(n.videoId);
+      return `<div class="note-card">
+        <div class="nc-top">
+          <div>
+            <span class="nc-time mono" onclick="location.hash='#/video/${n.videoId}?t=${n.timestamp}'">${fmtTime(n.timestamp)}</span>
+            <span style="color:var(--text-faint);font-size:12px;margin-left:8px">${escapeHtml(v?.title||'')}</span>
+          </div>
+          <div class="nc-actions"><button class="btn btn-ghost btn-sm btn-danger" onclick="deleteNote('${n.id}');render()">Delete</button></div>
+        </div>
+        <div class="nc-content">${escapeHtml(n.content)}</div>
+        <div class="nc-tags">${(n.tags||[]).map(t=>`<span class="tag tag-${t.toLowerCase()}">${t}</span>`).join('')}</div>
+      </div>`;
+    }).join('') : `<div class="panel empty"><div class="empty-title">No notes yet</div><p>Notes you create while watching will appear here.</p></div>`}
+  </div>`;
+}
+
+/* ---------------------------- Review page ---------------------------- */
+function renderReviewPage(){
+  const now = Date.now();
+  const due = S.concepts.filter(c=>{ const r=S.reviews[c.id]; return !r || r.due<=now; });
+  const upcoming = S.concepts.filter(c=>{ const r=S.reviews[c.id]; return r && r.due>now; }).sort((a,b)=>S.reviews[a.id].due-S.reviews[b.id].due);
+  return `
+  <div class="page">
+    <h1 class="page-title">Review</h1>
+    <div class="page-sub">Spaced repetition across everything you've learned.</div>
+    <div class="eyebrow">Due Today</div>
+    <div class="panel panel-pad" style="margin-bottom:24px">
+      ${due.length ? due.map(c=>`<div class="review-row"><span class="rn">${escapeHtml(c.name)}</span><span class="rd due">Due today</span></div>`).join('') : `<div class="empty"><div class="empty-title">Nothing due</div><p>Finish a lesson and complete a few questions to build your review queue.</p></div>`}
+      ${due.length ? `<button class="btn btn-accent" style="margin-top:12px" onclick="startReview()">Start Review</button>` : ''}
+    </div>
+    <div class="eyebrow">Upcoming</div>
+    <div class="panel panel-pad">
+      ${upcoming.length ? upcoming.map(c=>{ const r=S.reviews[c.id]; const days=Math.ceil((r.due-now)/86400000); return `<div class="review-row"><span class="rn">${escapeHtml(c.name)}</span><span class="rd">Due in ${days} day${days===1?'':'s'}</span></div>`; }).join('') : `<div style="color:var(--text-faint);font-size:12.5px">Nothing scheduled yet.</div>`}
+    </div>
+    <div id="review-session"></div>
+  </div>`;
+}
+let reviewQueue = [];
+function startReview(){
+  const now = Date.now();
+  reviewQueue = S.concepts.filter(c=>{ const r=S.reviews[c.id]; return !r || r.due<=now; });
+  reviewQueue.sort((a,b)=>{
+    const ra = S.reviews[a.id], rb = S.reviews[b.id];
+    const wa = ra ? ra.history.filter(h=>h.quality<3).length : 1;
+    const wb = rb ? rb.history.filter(h=>h.quality<3).length : 1;
+    return wb-wa; // prioritize repeatedly-missed concepts
+  });
+  runNextReview();
+}
+function startSingleConceptReview(id){ reviewQueue = [getConcept(id)]; runNextReview(); if(currentRoute().path!=='review') location.hash='#/review'; }
+function runNextReview(){
+  const target = document.getElementById('review-session');
+  if(!target) return;
+  if(!reviewQueue.length){ target.innerHTML = `<div class="panel panel-pad" style="margin-top:20px"><b>Review session complete.</b></div>`; return; }
+  const c = reviewQueue[0];
+  target.innerHTML = `
+  <div class="panel panel-pad" style="margin-top:20px">
+    <div class="eyebrow">Reviewing</div>
+    <div class="cc-name serif" style="font-size:18px;margin-bottom:10px">${escapeHtml(c.name)}</div>
+    <textarea id="review-answer" placeholder="Explain this concept in your own words…" style="width:100%;min-height:80px"></textarea>
+    <div style="margin-top:10px"><button class="btn btn-accent btn-sm" onclick="revealReviewAnswer('${c.id}')">Show course explanation</button></div>
+    <div id="review-reveal"></div>
+  </div>`;
+}
+function revealReviewAnswer(id){
+  const c = getConcept(id);
+  document.getElementById('review-reveal').innerHTML = `
+    <hr class="divider">
+    <div class="eyebrow">Course explanation</div>
+    <div style="font-size:13.5px;color:var(--text-dim);margin-bottom:14px">${escapeHtml(c.courseExplanation)||'<span style="color:var(--text-faint)">Not recorded — self-rate based on your own understanding.</span>'}</div>
+    <div class="eyebrow">How did that go?</div>
+    <div class="chip-row">
+      ${[0,1,2,3,4,5].map(q=>`<div class="chip" onclick="gradeReview('${c.id}', ${q})">${q}</div>`).join('')}
+    </div>
+    <div style="font-size:11px;color:var(--text-faint);margin-top:6px">0 = no idea · 5 = perfect recall</div>
+  `;
+}
+function gradeReview(id, quality){
+  scheduleReview(id, quality);
+  reviewQueue.shift();
+  toast('Logged.');
+  runNextReview();
+}
+
+/* ---------------------------- Quizzes ---------------------------- */
+function renderQuizzesPage(){
+  const quizzes = [...S.quizzes].sort((a,b)=>b.createdAt-a.createdAt);
+  return `
+  <div class="page">
+    <h1 class="page-title">Quizzes</h1>
+    <div class="page-sub">Active recall, generated from what you've actually watched.</div>
+    <div class="panel panel-pad" style="margin-bottom:20px">
+      <div class="eyebrow">Generate a quiz</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <select id="quiz-video-select">${S.videos.map(v=>`<option value="${v.id}">${escapeHtml(v.title)}</option>`).join('')}</select>
+        <button class="btn btn-accent btn-sm" onclick="generateQuiz(document.getElementById('quiz-video-select').value)">Test Yourself</button>
+      </div>
+    </div>
+    ${quizzes.length ? quizzes.map(q=>renderQuizCard(q)).join('') : `<div class="panel empty"><div class="empty-title">No quizzes yet</div><p>Generate a quiz from a video to start testing your recall.</p></div>`}
+  </div>`;
+}
+function renderQuizCard(q){
+  const v = getVideo(q.videoId);
+  return `
+  <div class="panel panel-pad" style="margin-bottom:14px">
+    <div class="eyebrow">${escapeHtml(v?.title||'')} · ${fmtDate(q.createdAt)}</div>
+    ${q.questions.map((qq,i)=>`
+      <div class="quiz-q">
+        <div class="qtype">${qq.type}</div>
+        <div style="font-size:14px;color:var(--text)">${escapeHtml(qq.question)}</div>
+        <textarea placeholder="Your answer…" id="qa-${qq.id}" ${qq.evaluated?'disabled':''}>${qq.userAnswer||''}</textarea>
+        ${qq.evaluated ? `
+          <div class="quiz-eval ${qq.correct?'eval-correct':'eval-partial'}">
+            <b>${qq.correct?'Correct':'Partially correct / review'}</b> — ${escapeHtml(qq.evaluation||'')}
+          </div>` : `<button class="btn btn-sm btn-accent" style="margin-top:8px" onclick="submitQuizAnswer('${q.id}','${qq.id}')">Submit answer</button>`}
+      </div>`).join('')}
+  </div>`;
+}
+async function generateQuiz(videoId){
+  const v = getVideo(videoId);
+  if(!v.transcript.length){ toast('Import a transcript for this video first — quizzes are drawn only from real course material.'); return; }
+  toast('Generating quiz…');
+  const system = `Write 4 short study questions (mix of recall, conceptual, application, comparison types) based ONLY on the provided transcript. Respond as JSON array of {type, question, idealAnswer}. Do not invent facts not present in the transcript.`;
+  const prompt = v.transcript.map(s=>s.text).join(' ').slice(0, 6000);
+  const result = await callClaude({ system, prompt, mode:'quiz-gen' });
+  if(result.demo){ toast('Quiz generation needs a connected AI backend (see Settings).'); return; }
+  try{
+    const parsed = JSON.parse(result.text);
+    const quiz = { id:uid(), videoId, questions: parsed.map(p=>({ id:uid(), type:p.type, question:p.question, idealAnswer:p.idealAnswer, userAnswer:'', evaluated:false, correct:false })), createdAt:Date.now() };
+    S.quizzes.push(quiz);
+    await persist('quizzes');
+    render();
+  }catch(e){ toast('Could not parse quiz response.'); }
+}
+async function submitQuizAnswer(quizId, qId){
+  const quiz = S.quizzes.find(q=>q.id===quizId);
+  const qq = quiz.questions.find(q=>q.id===qId);
+  qq.userAnswer = document.getElementById('qa-'+qId).value.trim();
+  const system = `Evaluate the learner's answer against the ideal answer drawn from the course transcript. Be encouraging but honest. Respond with one short sentence of feedback, then on a new line write CORRECT or PARTIAL or INCORRECT.`;
+  const prompt = `Question: ${qq.question}\nIdeal answer: ${qq.idealAnswer}\nLearner answer: ${qq.userAnswer}`;
+  const result = await callClaude({ system, prompt, mode:'quiz-eval' });
+  qq.evaluated = true;
+  if(result.demo){
+    qq.evaluation = 'Self-rate this one — no AI backend connected. Ideal answer: ' + qq.idealAnswer;
+    qq.correct = false;
+  } else {
+    qq.correct = /CORRECT/i.test(result.text) && !/INCORRECT/i.test(result.text);
+    qq.evaluation = result.text.split('\n')[0];
+  }
+  await persist('quizzes');
+  render();
+}
+
+/* ---------------------------- Search ---------------------------- */
+function renderSearchPage(){
+  return `
+  <div class="page">
+    <h1 class="page-title">Search</h1>
+    <div class="search-hero"><input id="global-search" placeholder="Search videos, transcript, notes, concepts, quizzes…" oninput="runSearch(this.value)" autofocus></div>
+    <div id="search-results"></div>
+  </div>`;
+}
+function runSearch(q){
+  const target = document.getElementById('search-results');
+  q = q.trim().toLowerCase();
+  if(!q){ target.innerHTML=''; return; }
+  const results = [];
+  S.videos.forEach(v=>{
+    if(v.title.toLowerCase().includes(q)) results.push({kind:'Video', title:v.title, href:`#/video/${v.id}`, time:null});
+    v.chapters.forEach(c=>{ if(c.title.toLowerCase().includes(q)) results.push({kind:'Chapter', title:c.title, href:`#/video/${v.id}?t=${c.start}`, time:c.start}); });
+    v.transcript.forEach(s=>{ if(s.text.toLowerCase().includes(q)) results.push({kind:'Transcript', title:s.text, href:`#/video/${v.id}?t=${s.start}`, time:s.start}); });
+  });
+  S.notes.forEach(n=>{ if(n.content.toLowerCase().includes(q)) results.push({kind:'My note', title:n.content, href:`#/video/${n.videoId}?t=${n.timestamp}`, time:n.timestamp}); });
+  S.concepts.forEach(c=>{ if(c.name.toLowerCase().includes(q) || (c.courseExplanation||'').toLowerCase().includes(q)) results.push({kind:'Concept', title:c.name, href:`#/concept/${c.id}`, time:null}); });
+  S.quizzes.forEach(qz=>qz.questions.forEach(qq=>{ if(qq.question.toLowerCase().includes(q)) results.push({kind:'Quiz question', title:qq.question, href:'#/quizzes', time:null}); }));
+  target.innerHTML = results.length ? results.slice(0,60).map(r=>`
+    <div class="search-result" onclick="location.hash='${r.href}'">
+      <div class="sr-time mono">${r.time!==null?fmtTime(r.time):''}</div>
+      <div><div class="sr-kind">${r.kind}</div><div class="sr-title">${escapeHtml(r.title).slice(0,140)}</div></div>
+    </div>`).join('') : `<div class="empty"><div class="empty-title">No matches</div></div>`;
+}
+
+/* ---------------------------- Stats ---------------------------- */
+function renderStatsPage(){
+  const st = courseStats();
+  const strongest = [...S.concepts].sort((a,b)=>(b.mastery?.score||0)-(a.mastery?.score||0)).slice(0,5);
+  const weakest = [...S.concepts].sort((a,b)=>(a.mastery?.score||0)-(b.mastery?.score||0)).slice(0,5);
+  const mostReviewed = Object.entries(S.reviews).sort((a,b)=>b[1].history.length-a[1].history.length).slice(0,5).map(([id])=>getConcept(id)).filter(Boolean);
+  return `
+  <div class="page">
+    <h1 class="page-title">Learning Statistics</h1>
+    <div class="grid grid-4" style="margin-bottom:24px">
+      <div class="stat"><div class="stat-val">${st.pct}%</div><div class="stat-label">Course completion</div></div>
+      <div class="stat"><div class="stat-val">${Math.round(st.studySeconds/60)}m</div><div class="stat-label">Total study time</div></div>
+      <div class="stat"><div class="stat-val">${st.completed}</div><div class="stat-label">Videos completed</div></div>
+      <div class="stat"><div class="stat-val">${st.quizAcc===null?'—':st.quizAcc+'%'}</div><div class="stat-label">Average quiz score</div></div>
+    </div>
+    <div class="grid grid-3">
+      <div class="panel panel-pad"><div class="eyebrow">Strongest concepts</div>${strongest.length?strongest.map(c=>`<div class="review-row"><span class="rn">${escapeHtml(c.name)}</span><span class="rd mono">${c.mastery?.score||0}%</span></div>`).join(''):'<div style="color:var(--text-faint);font-size:12.5px">Not enough data yet.</div>'}</div>
+      <div class="panel panel-pad"><div class="eyebrow">Weakest concepts</div>${weakest.length?weakest.map(c=>`<div class="review-row"><span class="rn">${escapeHtml(c.name)}</span><span class="rd mono">${c.mastery?.score||0}%</span></div>`).join(''):'<div style="color:var(--text-faint);font-size:12.5px">Not enough data yet.</div>'}</div>
+      <div class="panel panel-pad"><div class="eyebrow">Most reviewed</div>${mostReviewed.length?mostReviewed.map(c=>`<div class="review-row"><span class="rn">${escapeHtml(c.name)}</span><span class="rd mono">${S.reviews[c.id].history.length}×</span></div>`).join(''):'<div style="color:var(--text-faint);font-size:12.5px">No review sessions yet.</div>'}</div>
+    </div>
+  </div>`;
+}
+
+/* ---------------------------- Settings ---------------------------- */
+function renderSettingsPage(){
+  const s = S.settings;
+  return `
+  <div class="page">
+    <h1 class="page-title">Settings</h1>
+    <div class="grid grid-2">
+      <div class="panel panel-pad">
+        <div class="eyebrow">Appearance</div>
+        <div class="field"><label>Accent color</label>
+          <div class="chip-row">
+            ${['sage','teal','gold','blue'].map(a=>`<div class="chip ${s.accent===a?'selected':''}" onclick="updateSetting('accent','${a}')">${a}</div>`).join('')}
+          </div>
+        </div>
+        <div class="field"><label>Playback speed</label>
+          <select onchange="updateSetting('playbackSpeed', Number(this.value))">
+            ${[0.75,1,1.25,1.5,2].map(v=>`<option value="${v}" ${s.playbackSpeed===v?'selected':''}>${v}×</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Auto-save</label>
+          <div class="chip-row"><div class="chip ${s.autoSave?'selected':''}" onclick="updateSetting('autoSave', true)">On</div><div class="chip ${!s.autoSave?'selected':''}" onclick="updateSetting('autoSave', false)">Off</div></div>
+        </div>
+        <div class="field"><label>Review frequency</label>
+          <select onchange="updateSetting('reviewFrequency', this.value)">
+            ${['daily','every 2 days','weekly'].map(v=>`<option value="${v}" ${s.reviewFrequency===v?'selected':''}>${v}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>AI response style</label>
+          <select onchange="updateSetting('aiStyle', this.value)">
+            ${['concise','detailed','socratic'].map(v=>`<option value="${v}" ${s.aiStyle===v?'selected':''}>${v}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="panel panel-pad">
+        <div class="eyebrow">API configuration</div>
+        <div style="font-size:12px;color:var(--text-faint);margin-bottom:10px">The Claude API key must live on a server, never in this page's JavaScript. Point this at a backend endpoint (see <span class="mono">server-example/</span>) that forwards requests to Claude. Leave blank to stay in demo mode.</div>
+        <div class="field"><label>Backend endpoint</label><input id="api-endpoint" value="${escapeHtml(s.apiEndpoint)}" placeholder="http://localhost:8787/api/claude" onchange="updateSetting('apiEndpoint', this.value)"></div>
+        <hr class="divider">
+        <div class="eyebrow">Data</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="exportData()">Export data (JSON)</button>
+          <label class="btn btn-sm" style="cursor:pointer">Import data<input type="file" accept="application/json" style="display:none" onchange="importData(this.files[0])"></label>
+        </div>
+        <hr class="divider">
+        <div class="eyebrow">Keyboard shortcuts</div>
+        <div class="kbd-list">
+          <div class="kl-row"><span>Play / pause</span><kbd>Space</kbd></div>
+          <div class="kl-row"><span>New note</span><kbd>N</kbd></div>
+          <div class="kl-row"><span>Quiz me</span><kbd>Q</kbd></div>
+          <div class="kl-row"><span>Capture screenshot</span><kbd>S</kbd></div>
+          <div class="kl-row"><span>Review</span><kbd>R</kbd></div>
+          <div class="kl-row"><span>Search</span><kbd>/</kbd></div>
+          <div class="kl-row"><span>Close modal</span><kbd>Esc</kbd></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+async function updateSetting(key, val){
+  S.settings[key] = val;
+  await persist('settings');
+  if(key==='playbackSpeed' && ytPlayer && ytPlayer.setPlaybackRate) ytPlayer.setPlaybackRate(val);
+  render();
+}
+async function exportData(){
+  const dump = {};
+  for(const key of Object.keys(DEFAULTS)) dump[key] = S[key];
+  const blob = new Blob([JSON.stringify(dump, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'order-flow-academy-backup.json';
+  a.click();
+}
+async function importData(file){
+  if(!file) return;
+  const text = await file.text();
+  try{
+    const data = JSON.parse(text);
+    for(const key of Object.keys(DEFAULTS)){ if(data[key]!==undefined){ S[key]=data[key]; await persist(key); } }
+    toast('Data imported.');
+    render();
+  }catch(e){ toast('Invalid backup file.'); }
+}
+
+/* ---------------------------- Modal ---------------------------- */
+function showModal(html){
+  document.getElementById('modal-root').innerHTML = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`;
+}
+function closeModal(){ document.getElementById('modal-root').innerHTML=''; }
+
+/* ---------------------------- Keyboard shortcuts ---------------------------- */
+document.addEventListener('keydown', (e)=>{
+  const tag = (e.target.tagName||'').toLowerCase();
+  if(tag==='input' || tag==='textarea'){ if(e.key==='Escape') closeModal(); return; }
+  if(e.key==='Escape'){ closeModal(); return; }
+  if(e.key==='/'){ e.preventDefault(); location.hash='#/search'; setTimeout(()=>document.getElementById('global-search')?.focus(),50); return; }
+  if(e.key==='?'){ location.hash='#/settings'; return; }
+  if(currentRoute().path!=='video') return;
+  if(e.code==='Space'){ e.preventDefault(); if(ytPlayer){ const st=ytPlayer.getPlayerState(); st===1?ytPlayer.pauseVideo():ytPlayer.playVideo(); } }
+  if(e.key==='n'||e.key==='N') openNoteModal();
+  if(e.key==='q'||e.key==='Q') generateQuiz(activeVideoId);
+  if(e.key==='s'||e.key==='S') openScreenshotModal();
+  if(e.key==='r'||e.key==='R') location.hash='#/review';
+});
+
+/* ---------------------------- Init ---------------------------- */
+(async function init(){
+  await loadState();
+  document.body.dataset.accent = S.settings.accent;
+  render();
+})();
+</script>
+</body>
+</html>
