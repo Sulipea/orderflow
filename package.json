@@ -1,0 +1,9 @@
+{
+  "name": "order-flow-academy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static frontend (index.html) + a single Vercel serverless function (api/claude.js) that forwards requests to the Anthropic API using a server-side key.",
+  "engines": {
+    "node": ">=18"
+  }
+}
